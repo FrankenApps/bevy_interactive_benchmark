@@ -39,15 +39,15 @@ fn init(
 
 	let values = Uniform::new(0, 3);
 
-	//const AMOUNT: i32 = 10;
+	//let amount: i32 = 10;
 
 	// Amount from config
 	let data = fs::read_to_string("config.txt").expect("Unable to read file");
-	let AMOUNT: i32 = data.parse::<i32>().expect("Can not convert config option to number.");
+	let amount: i32 = data.parse::<i32>().expect("Can not convert config option to number.");
 
-	for x in -(AMOUNT / 2)..(AMOUNT / 2) {
-		for y in -(AMOUNT / 2)..(AMOUNT / 2) {
-			for z in -(AMOUNT / 2)..(AMOUNT / 2) {
+	for x in -(amount / 2)..(amount / 2) {
+		for y in -(amount / 2)..(amount / 2) {
+			for z in -(amount / 2)..(amount / 2) {
 				let mut rng = rand::thread_rng();
 				//let current_material = box_materials[values.sample(&mut rng)].clone_weak() as Handle<StandardMaterial>;
 				let current_material = materials.add(box_colors[values.sample(&mut rng)].into());
