@@ -440,6 +440,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_interactive_benchmark"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "rand",
+]
+
+[[package]]
 name = "bevy_internal"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2549,14 +2557,6 @@ name = "once_cell"
 version = "1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13bd41f508810a131401606d54ac32a467c97172d74ba7662562ebba5ad07fa0"
-
-[[package]]
-name = "orbit_scene_3d"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "rand",
-]
 
 [[package]]
 name = "owned_ttf_parser"

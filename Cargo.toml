@@ -1,5 +1,5 @@
 [package]
-name = "orbit_scene_3d"
+name = "bevy_interactive_benchmark"
 version = "0.1.0"
 authors = ["ferdinandschaffler"]
 edition = "2018"
@@ -8,5 +8,4 @@ edition = "2018"
 
 [dependencies]
 bevy = "0.4.0"
-#bevy-orbit-controls = "1.0.1"
 rand = "0.7.3"
