@@ -1,0 +1,12 @@
+[package]
+name = "orbit_scene_3d"
+version = "0.1.0"
+authors = ["ferdinandschaffler"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = "0.4.0"
+#bevy-orbit-controls = "1.0.1"
+rand = "0.7.3"
