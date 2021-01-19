@@ -190,9 +190,7 @@ impl OrbitCameraPlugin {
         else if keyboard_input.pressed(KeyCode::Down){
             total -= 0.2;
             Self::set_zoom_level(total, query);
-        }
-
-        
+        }   
     }
 }
 impl Plugin for OrbitCameraPlugin {
