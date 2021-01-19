@@ -1,14 +1,20 @@
-use std::fs;
+use std::env;
 
 use bevy::prelude::*;
 use rand::distributions::{Distribution, Uniform};
 mod orbit_controls;
 use orbit_controls::{OrbitCamera, OrbitCameraPlugin};
 
+#[derive(Default)]
+struct StartupOptions{
+    box_count: i32,
+}
+
 fn init(
 	commands: &mut Commands,
 	mut meshes: ResMut<Assets<Mesh>>,
 	mut materials: ResMut<Assets<StandardMaterial>>,
+	startup_command: ResMut<StartupOptions>,
 ) {
 	commands
 		.spawn(LightBundle {
@@ -39,11 +45,7 @@ fn init(
 
 	let values = Uniform::new(0, 3);
 
-	//let amount: i32 = 10;
-
-	// Amount from config
-	let data = fs::read_to_string("config.txt").expect("Unable to read file");
-	let amount: i32 = data.parse::<i32>().expect("Can not convert config option to number.");
+	let amount: i32 = startup_command.box_count;
 
 	for x in -(amount / 2)..(amount / 2) {
 		for y in -(amount / 2)..(amount / 2) {
@@ -65,8 +67,22 @@ fn init(
 	}
 }
 
+fn parse_command_line_options(args: Vec<String>) -> StartupOptions {
+    let mut options = StartupOptions {
+        box_count: 6,
+    };
+
+    if args.len() > 1 {
+        options.box_count = args[1].parse().expect("Please specify the number of boxes.");
+    }
+
+    return  options;
+}
+
 #[bevy_main]
 fn main() {
+	let args: Vec<String> = env::args().collect();
+    let startup_options = parse_command_line_options(args);
 	App::build()
 		.add_resource(WindowDescriptor {
 			width: 800.0,
@@ -76,6 +92,7 @@ fn main() {
 			..Default::default()
 		})
 		.add_resource(Msaa { samples: 4 })
+		.add_resource(startup_options)
 		.add_plugins(DefaultPlugins)
 		.add_plugin(OrbitCameraPlugin)
 		.add_startup_system(init.system())
