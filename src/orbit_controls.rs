@@ -1,5 +1,3 @@
-#![allow(unstable_name_collisions)]
-
 use bevy::input::mouse::MouseMotion;
 use bevy::input::mouse::MouseScrollUnit::{Line, Pixel};
 use bevy::input::mouse::MouseWheel;
@@ -7,36 +5,6 @@ use bevy::prelude::*;
 use bevy::render::camera::Camera;
 
 const LINE_TO_PIXEL_RATIO: f32 = 0.1;
-
-pub trait Clamp: Sized {
-    fn clamp<L, U>(self, lower: L, upper: U) -> Self
-    where
-        L: Into<Option<Self>>,
-        U: Into<Option<Self>>;
-}
-
-impl Clamp for f32 {
-    fn clamp<L, U>(self, lower: L, upper: U) -> Self
-    where
-        L: Into<Option<Self>>,
-        U: Into<Option<Self>>,
-    {
-        let below = match lower.into() {
-            None => self,
-            Some(lower) => self.max(lower),
-        };
-        match upper.into() {
-            None => below,
-            Some(upper) => below.min(upper),
-        }
-    }
-}
- 
-#[derive(Default)]
-struct State {
-    motion: EventReader<MouseMotion>,
-    scroll: EventReader<MouseWheel>,
-}
 
 pub struct OrbitCamera {
     pub x: f32,
@@ -58,7 +26,7 @@ impl Default for OrbitCamera {
             x: 0.0,
             y: 0.0,
             distance: 5.0,
-            center: Vec3::zero(),
+            center: Vec3::ZERO,
             rotate_sensitivity: 1.0,
             zoom_sensitivity: 0.8,
             pan_sensitivity: 1.0,
@@ -92,20 +60,19 @@ pub struct OrbitCameraPlugin;
 impl OrbitCameraPlugin {
     fn mouse_motion_system(
         time: Res<Time>,
-        mut state: ResMut<State>,
-        mouse_motion_events: Res<Events<MouseMotion>>,
+        mut mouse_motion_events: EventReader<MouseMotion>,
         mouse_button_input: Res<Input<MouseButton>>,
         keyboard_input: Res<Input<KeyCode>>,
         mut query: Query<(&mut OrbitCamera, &mut Transform, &mut Camera)>,
     ) {
-        let mut delta = Vec2::zero();
-        for event in state.motion.iter(&mouse_motion_events) {
+        let mut delta = Vec2::ZERO;
+        for event in mouse_motion_events.iter() {
             delta += event.delta;
         }
         for (mut camera, mut transform, _) in query.iter_mut() {
             // Shift + LMB = Drag
             if keyboard_input.pressed(KeyCode::LShift) {
-                if mouse_button_input.pressed(MouseButton::Left) {
+                if mouse_button_input.pressed(MouseButton::Left) == true {
                     let camera_translation = Vec3::new(
                         delta.x * camera.pan_sensitivity * time.delta_seconds(),
                         delta.y * camera.pan_sensitivity * time.delta_seconds(),
@@ -124,11 +91,11 @@ impl OrbitCameraPlugin {
     
                     camera.y = camera.y.clamp(camera.min_polar_angle, camera.max_polar_angle);
     
-                    let rot = Quat::from_axis_angle(Vec3::unit_y(), camera.x)
-                        * Quat::from_axis_angle(-Vec3::unit_x(), camera.y);
+                    let rot = Quat::from_axis_angle(Vec3::Y, camera.x)
+                        * Quat::from_axis_angle(-Vec3::X, camera.y);
                     transform.translation =
                         (rot * Vec3::new(0.0, 1.0, 0.0)) * camera.distance + camera.center;
-                    transform.look_at(camera.center, Vec3::unit_y());
+                    transform.look_at(camera.center, Vec3::Y);
                 }
                 // RMB = Drag
                 else if mouse_button_input.pressed(MouseButton::Right) {
@@ -147,12 +114,11 @@ impl OrbitCameraPlugin {
     }
 
     fn mouse_zoom_system(
-        mut state: ResMut<State>,
-        mouse_wheel_events: Res<Events<MouseWheel>>,
+        mut mouse_wheel_events: EventReader<MouseWheel>,
         query: Query<(&mut OrbitCamera, &mut Transform, &mut Camera)>,
     ) {
         let mut total = 0.0;
-        for event in state.scroll.iter(&mouse_wheel_events) {
+        for event in mouse_wheel_events.iter() {
             total += event.y
                 * match event.unit {
                     Line => 1.0,
@@ -169,8 +135,8 @@ impl OrbitCameraPlugin {
         for (mut camera, mut transform, _) in query.iter_mut() {
             camera.distance *= camera.zoom_sensitivity.powf(zoom);
             camera.distance = camera.distance.clamp(
-                if camera.min_zoom_distance >= 0.0 { Some(camera.min_zoom_distance) } else { None }, 
-                if camera.max_zoom_distance >= 0.0 { Some(camera.max_zoom_distance) } else { None }
+                 camera.min_zoom_distance, 
+                 camera.max_zoom_distance
             );
             let translation = &mut transform.translation;
             *translation =
@@ -195,8 +161,7 @@ impl OrbitCameraPlugin {
 }
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<State>()
-            .add_system(Self::mouse_motion_system.system())
+        app.add_system(Self::mouse_motion_system.system())
             .add_system(Self::mouse_zoom_system.system())
             .add_system(Self::keyboard_controls_system.system());
     }

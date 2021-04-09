@@ -1,9 +1,6 @@
 use std::env;
 
-use bevy::{
-    diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
-    prelude::*,
-};
+use bevy::{diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin}, prelude::*};
 use rand::distributions::{Distribution, Uniform};
 mod orbit_controls;
 use orbit_controls::{OrbitCamera, OrbitCameraPlugin};
@@ -16,27 +13,27 @@ struct StartupOptions{
 struct FpsText;
 
 fn init(
-	commands: &mut Commands,
+	mut commands: Commands,
 	mut meshes: ResMut<Assets<Mesh>>,
 	mut materials: ResMut<Assets<StandardMaterial>>,
 	asset_server: Res<AssetServer>,
 	startup_command: ResMut<StartupOptions>,
 ) {
-	commands
-		.spawn(LightBundle {
-			transform: Transform::from_translation(Vec3::new(4.0, 8.0, 4.0)),
-			..Default::default()
-		})
-		.spawn(Camera3dBundle {
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10 as f32 * 1.25))
-                .looking_at(Vec3::default(), Vec3::unit_y()),
-            ..Default::default()
-        })
-		.with(OrbitCamera::new(0.0, 0.0, 10 as f32 * 1.25, Vec3::zero()));
+	commands.spawn_bundle(LightBundle {
+		transform: Transform::from_translation(Vec3::new(4.0, 8.0, 4.0)),
+		..Default::default()
+	});
 
-	commands.spawn(CameraUiBundle::default())
+	commands.spawn_bundle(PerspectiveCameraBundle {
+        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10 as f32 * 1.25))
+            .looking_at(Vec3::default(), Vec3::Y),
+        ..Default::default()
+    })
+	.insert(OrbitCamera::new(0.0, 0.0, 10 as f32 * 1.25, Vec3::ZERO));
+
+	commands.spawn_bundle(UiCameraBundle::default());
 	// texture
-	.spawn(TextBundle {
+	/* commands.spawn_bundle(TextBundle {
 		transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
 		style: Style {
 			align_self: AlignSelf::FlexEnd,
@@ -53,7 +50,24 @@ fn init(
 		},
 		..Default::default()
 	})
-	.with(FpsText);
+	.with(FpsText); */
+
+	commands.spawn_bundle(Text2dBundle {
+        text: Text::with_section(
+            " FPS:",
+            TextStyle {
+                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                font_size: 20.0,
+                color: Color::WHITE,
+            },
+            TextAlignment {
+                vertical: VerticalAlign::Top,
+                horizontal: HorizontalAlign::Left,
+            },
+        ),
+        ..Default::default()
+    })
+	.insert(FpsText);
 
 	let box_mesh = meshes.add(Mesh::from(shape::Box::new(0.9, 0.9, 0.9)));
 	//let box_material = materials.add(Color::rgb(1.0, 0.2, 0.3).into());
@@ -80,7 +94,7 @@ fn init(
 				let mut rng = rand::thread_rng();
 				//let current_material = box_materials[values.sample(&mut rng)].clone_weak() as Handle<StandardMaterial>;
 				let current_material = materials.add(box_colors[values.sample(&mut rng)].into());
-				commands.spawn(PbrBundle {
+				commands.spawn_bundle(PbrBundle {
 					mesh: box_mesh.clone(),
 					//material: box_material.clone(),
 					material: current_material,
@@ -98,9 +112,14 @@ fn text_update_system(diagnostics: Res<Diagnostics>, mut query: Query<&mut Text,
     for mut text in query.iter_mut() {
         if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
             if let Some(average) = fps.average() {
-                text.value = format!(" FPS: {:.0}", average);
+                text.sections[0].value = format!(" FPS: {:.0}", average);
             }
-        }
+		}
+		/* if let Some(draw_calls) = diagnostics.get(bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin::SHADER_MODULES) {
+			if let Some(average) = draw_calls.average() {
+				println!("{}", average);
+			}
+		} */
     }
 }
 
@@ -121,18 +140,19 @@ fn main() {
 	let args: Vec<String> = env::args().collect();
     let startup_options = parse_command_line_options(args);
 	App::build()
-		.add_resource(WindowDescriptor {
+		.insert_resource(WindowDescriptor {
 			width: 800.0,
 			height: 600.0,
 			vsync: true,
 			decorations: false,
 			..Default::default()
 		})
-		.add_resource(Msaa { samples: 4 })
-		.add_resource(startup_options)
+		.insert_resource(Msaa { samples: 4 })
+		.insert_resource(startup_options)
 		.add_plugins(DefaultPlugins)
 		.add_plugin(OrbitCameraPlugin)
 		.add_plugin(FrameTimeDiagnosticsPlugin::default())
+		.add_plugin(bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin::default())
 		.add_startup_system(init.system())
 		.add_system(text_update_system.system())
 		.run();
