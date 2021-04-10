@@ -72,7 +72,7 @@ impl OrbitCameraPlugin {
         for (mut camera, mut transform, _) in query.iter_mut() {
             // Shift + LMB = Drag
             if keyboard_input.pressed(KeyCode::LShift) {
-                if mouse_button_input.pressed(MouseButton::Left) == true {
+                if mouse_button_input.pressed(MouseButton::Left) {
                     let camera_translation = Vec3::new(
                         delta.x * camera.pan_sensitivity * time.delta_seconds(),
                         delta.y * camera.pan_sensitivity * time.delta_seconds(),
@@ -119,8 +119,7 @@ impl OrbitCameraPlugin {
     ) {
         let mut total = 0.0;
         for event in mouse_wheel_events.iter() {
-            total += event.y
-                * match event.unit {
+            total += event.y * match event.unit {
                     Line => 1.0,
                     Pixel => LINE_TO_PIXEL_RATIO,
                 };

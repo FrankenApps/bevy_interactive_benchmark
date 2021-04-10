@@ -31,28 +31,8 @@ fn init(
     })
 	.insert(OrbitCamera::new(0.0, 0.0, 10 as f32 * 1.25, Vec3::ZERO));
 
-	commands.spawn_bundle(UiCameraBundle::default());
-	// texture
-	/* commands.spawn_bundle(TextBundle {
-		transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
-		style: Style {
-			align_self: AlignSelf::FlexEnd,
-			..Default::default()
-		},
-		text: Text {
-			value: " FPS:".to_string(),
-			font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-			style: TextStyle {
-				font_size: 20.0,
-				color: Color::WHITE,
-				..Default::default()
-			},
-		},
-		..Default::default()
-	})
-	.with(FpsText); */
-
-	commands.spawn_bundle(Text2dBundle {
+	commands.spawn_bundle(UiCameraBundle::default())
+	.insert_bundle(Text2dBundle {
         text: Text::with_section(
             " FPS:",
             TextStyle {
