@@ -25,25 +25,32 @@ fn init(
 	});
 
 	commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10 as f32 * 1.25))
+        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 12.5))
             .looking_at(Vec3::default(), Vec3::Y),
         ..Default::default()
     })
-	.insert(OrbitCamera::new(0.0, 0.0, 10 as f32 * 1.25, Vec3::ZERO));
+	.insert(OrbitCamera::new(0.0, 0.0, 12.5, Vec3::ZERO));
 
-	commands.spawn_bundle(UiCameraBundle::default())
-	.insert_bundle(Text2dBundle {
+	commands.spawn_bundle(UiCameraBundle::default());
+	commands.spawn_bundle(TextBundle {
+        style: Style {
+            align_self: AlignSelf::FlexEnd,
+            position_type: PositionType::Absolute,
+            position: Rect {
+                top: Val::Px(5.0),
+                left: Val::Px(5.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
         text: Text::with_section(
-            " FPS:",
+            "FPS: unknown",
             TextStyle {
                 font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                 font_size: 20.0,
                 color: Color::WHITE,
             },
-            TextAlignment {
-                vertical: VerticalAlign::Top,
-                horizontal: HorizontalAlign::Left,
-            },
+            Default::default(),
         ),
         ..Default::default()
     })
